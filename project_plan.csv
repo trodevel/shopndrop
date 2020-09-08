@@ -1,0 +1,15 @@
+=MAX(A4:A1000)+1;;;;;'= next task id;;;
+;;;;;sort order: STATUS (desc), PRIO, TYPE, AREA;;;
+;;;;;;;;
+ID;TYPE;STATUS;AREA;PRIO;DESCR;CREATION_DATE;COMPLETION_DATE;VERSION
+11;IMPR;not started;fe;1;adjust frontend to changes in protocols shopndrop, shopndrop_web;2020-08-26;;
+7;IMPR;not started;core;2;increase inactivity timeout to 30 min;2019-05-21;;
+4;NEW;not started;sys;2;setup users and watchdog;2019-05-14;;
+9;IMPR;done;api;1;reimplement shopndrop_web protocol using APPG;2020-08-20;2020-08-31;?
+8;IMPR;done;api;1;reimplement shopndrop protocol using APPG;2020-08-20;2020-08-24;?
+10;IMPR;done;core;1;adjust server to changes in protocols shopndrop, shopndrop_web;2020-08-20;2020-09-08;?
+6;IMPR;done;core;1;add more products to Goodies DB;2019-05-19;2019-05-21;1.1
+5;IMPR;done;core;1;add minimal basket size;2019-05-19;2019-05-20;1.1
+1;NEW;done;core;1;create protocol draft;2019-03-31;2019-05-03;1
+2;NEW ;done;core;1;create server derived from core;2019-03-31;2019-05-15;1
+3;NEW;done;fe;2;create frontend;2019-03-31;2019-05-20;1
