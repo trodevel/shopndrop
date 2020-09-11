@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 13757 $ $Date:: 2020-09-08 #$ $Author: serge $
+// $Revision: 13792 $ $Date:: 2020-09-11 #$ $Author: serge $
 
 #include "core.h"                       // self
 
@@ -57,7 +57,7 @@ bool Core::init(
 
     config_ = config;
 
-    bool b = sh_.init( & perm_checker_, & h_, config.request_log, config.request_log_rotation_interval_min );
+    bool b = sh_.init( & perm_checker_, & ht_, config.request_log, config.request_log_rotation_interval_min );
     ASSERT( b );
 
     b = gh_.init( & sess_man_, & user_man_ );
@@ -98,8 +98,12 @@ bool Core::init(
 
     goodies_db_.init( config_.goodies_db_file );
 
+    b = ht_.init( log_id_handler,
+            & gh_, & h_ );
+    ASSERT( b );
+
     b = h_.init( log_id_handler,
-            & gh_, & user_man_, & db_, & lead_db_, & tzc_,
+            & user_man_, & db_, & lead_db_, & tzc_,
             & time_adj_, & db_obj_gen_, & goodies_db_ );
     ASSERT( b );
 

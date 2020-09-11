@@ -1,6 +1,6 @@
 /*
 
-Handler of server requests.
+HandlerThunk of server requests.
 
 Copyright (C) 2019 Sergey Kolevatov
 
@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 13757 $ $Date:: 2020-09-08 #$ $Author: serge $
+// $Revision: 13792 $ $Date:: 2020-09-11 #$ $Author: serge $
 
 
 #ifndef THUNK_H
@@ -35,7 +35,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 namespace shopndrop {
 
 class PermChecker;
-class Handler;
+class HandlerThunk;
 
 class Thunk: public virtual restful_interface::IHandler
 {
@@ -44,7 +44,7 @@ public:
 
     bool init(
             PermChecker         * perm_checker,
-            Handler             * hander,
+            HandlerThunk             * hander,
             const std::string   & request_log,
             uint32_t            request_log_rotation_interval_min );
 
@@ -63,7 +63,7 @@ private:
     mutable std::mutex          mutex_;
 
     PermChecker                 * perm_checker_;
-    Handler                     * handler_;
+    HandlerThunk                * handler_thunk_;
 
     std::unique_ptr<utils::LogfileTime>    logfile_;
 };

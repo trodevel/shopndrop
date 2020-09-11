@@ -1,6 +1,6 @@
 /*
 
-Handler of server requests.
+HandlerThunk of server requests.
 
 Copyright (C) 2019 Sergey Kolevatov
 
@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 13757 $ $Date:: 2020-09-08 #$ $Author: serge $
+// $Revision: 13792 $ $Date:: 2020-09-11 #$ $Author: serge $
 
 #include "thunk.h"    // self
 
@@ -44,7 +44,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "shopndrop_web_protocol/parser.h"          // shopndrop_web_protocol::parser
 #include "shopndrop_web_protocol/csv_helper.h"    // shopndrop_web_protocol::CsvResponseEncoder
 
-#include "handler.h"                    // Handler
+#include "handler_thunk.h"              // HandlerThunk
 #include "perm_checker.h"               // PermChecker
 
 #define MODULENAME      "shopndrop::Thunk"
@@ -53,13 +53,13 @@ namespace shopndrop {
 
 Thunk::Thunk():
     perm_checker_( nullptr ),
-    handler_( nullptr )
+    handler_thunk_( nullptr )
 {
 }
 
 bool Thunk::init(
         PermChecker         * perm_checker,
-        Handler             * hander,
+        HandlerThunk        * hander,
         const std::string   & request_log,
         uint32_t            request_log_rotation_interval_min )
 {
@@ -69,7 +69,7 @@ bool Thunk::init(
         return false;
 
     perm_checker_   = perm_checker;
-    handler_        = hander;
+    handler_thunk_  = hander;
 
     logfile_.reset( new utils::LogfileTime( request_log, request_log_rotation_interval_min ) );
 
@@ -184,7 +184,7 @@ generic_protocol::BackwardMessage* Thunk::handle( const basic_parser::Object * r
         return generic_protocol::create_ErrorResponse( generic_protocol::ErrorResponse_type_e::INVALID_OR_EXPIRED_SESSION, "invalid or expired session id" );
 
     if( perm_checker_->is_allowed( session_user_id, req ) )
-        return handler_->handle( session_user_id, req );
+        return handler_thunk_->handle( session_user_id, req );
 
     return generic_protocol::create_ErrorResponse( generic_protocol::ErrorResponse_type_e::NOT_PERMITTED, "no rights to execute request" );
 }

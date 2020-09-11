@@ -19,16 +19,18 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 13757 $ $Date:: 2020-09-08 #$ $Author: serge $
+// $Revision: 13792 $ $Date:: 2020-09-11 #$ $Author: serge $
 
-#ifndef SHOPNDROP_HANDLER_H
-#define SHOPNDROP_HANDLER_H
+#ifndef SHOPNDROP__HANDLER_H
+#define SHOPNDROP__HANDLER_H
 
 #include <mutex>                    // std::mutex
 #include <map>                      // std::map
 #include "user_manager/user_manager.h"      // user_manager::UserManager
-#include "shopndrop_protocol/protocol.h"            // shopndrop_protocol::SayRequest, ...
+#include "shopndrop_protocol/protocol.h"            // shopndrop_protocol::...
 #include "shopndrop_web_protocol/protocol.h"        // shopndrop_web_protocol::...
+#include "user_management_protocol/protocol.h"      // user_management_protocol::...
+#include "user_reg_protocol/protocol.h"             // user_reg_protocol::...
 #include "db_order_db.h"                    // db::OrderDB
 #include "utils/boost_timezone.h"        // utils::TimeZoneConverter
 #include "time_adjuster.h"          // TimeAdjuster
@@ -45,11 +47,6 @@ class ForwardMessage;
 class BackwardMessage;
 }
 
-namespace generic_handler
-{
-class Handler;
-}
-
 namespace shopndrop {
 
 class LeadDB;
@@ -62,7 +59,6 @@ public:
 
     bool init(
             unsigned int                        log_id,
-            generic_handler::Handler            * generic_handler,
             user_manager::UserManager           * user_man,
             db::OrderDB                         * order_db,
             LeadDB                              * lead_db,
@@ -71,29 +67,26 @@ public:
             ObjGenerator                        * obj_gen,
             GoodiesDB                           * goodies_db );
 
-    // quasi-interface IHandler
-    generic_protocol::BackwardMessage* handle( user_id_t session_user_id, const basic_parser::Object * r );
+    generic_protocol::BackwardMessage* handle( user_id_t session_user_id, const shopndrop_protocol::AddRideRequest & r );
+    generic_protocol::BackwardMessage* handle( user_id_t session_user_id, const shopndrop_protocol::GetRideRequest & r );
+    generic_protocol::BackwardMessage* handle( user_id_t session_user_id, const shopndrop_protocol::CancelRideRequest & r );
+    generic_protocol::BackwardMessage* handle( user_id_t session_user_id, const user_management_protocol::GetUserInfoRequest & r );
+    generic_protocol::BackwardMessage* handle( user_id_t session_user_id, const shopndrop_protocol::AddOrderRequest & r );
+    generic_protocol::BackwardMessage* handle( user_id_t session_user_id, const shopndrop_protocol::CancelOrderRequest & r );
+    generic_protocol::BackwardMessage* handle( user_id_t session_user_id, const shopndrop_protocol::AcceptOrderRequest & r );
+    generic_protocol::BackwardMessage* handle( user_id_t session_user_id, const shopndrop_protocol::DeclineOrderRequest & r );
+    generic_protocol::BackwardMessage* handle( user_id_t session_user_id, const shopndrop_protocol::MarkDeliveredOrderRequest & r );
+    generic_protocol::BackwardMessage* handle( user_id_t session_user_id, const shopndrop_protocol::RateShopperRequest & r );
+
+    generic_protocol::BackwardMessage* handle( user_id_t session_user_id, const shopndrop_web_protocol::GetProductItemListRequest & r );
+    generic_protocol::BackwardMessage* handle( user_id_t session_user_id, const shopndrop_web_protocol::GetShoppingRequestInfoRequest & r );
+    generic_protocol::BackwardMessage* handle( user_id_t session_user_id, const shopndrop_web_protocol::GetShoppingListWithTotalsRequest & r );
+    generic_protocol::BackwardMessage* handle( user_id_t session_user_id, const shopndrop_web_protocol::GetDashScreenUserRequest & r );
+    generic_protocol::BackwardMessage* handle( user_id_t session_user_id, const shopndrop_web_protocol::GetDashScreenShopperRequest & r );
+
+    generic_protocol::BackwardMessage* handle( user_id_t session_user_id, const user_reg_protocol::RegisterUserRequest & r );
 
 private:
-
-    generic_protocol::BackwardMessage* handle_AddRideRequest( user_id_t session_user_id, const basic_parser::Object * r );
-    generic_protocol::BackwardMessage* handle_GetRideRequest( user_id_t session_user_id, const basic_parser::Object * r );
-    generic_protocol::BackwardMessage* handle_CancelRideRequest( user_id_t session_user_id, const basic_parser::Object * r );
-    generic_protocol::BackwardMessage* handle_user_management_GetUserInfoRequest( user_id_t session_user_id, const basic_parser::Object * r );
-    generic_protocol::BackwardMessage* handle_AddOrderRequest( user_id_t session_user_id, const basic_parser::Object * r );
-    generic_protocol::BackwardMessage* handle_CancelOrderRequest( user_id_t session_user_id, const basic_parser::Object * r );
-    generic_protocol::BackwardMessage* handle_AcceptOrderRequest( user_id_t session_user_id, const basic_parser::Object * r );
-    generic_protocol::BackwardMessage* handle_DeclineOrderRequest( user_id_t session_user_id, const basic_parser::Object * r );
-    generic_protocol::BackwardMessage* handle_MarkDeliveredOrderRequest( user_id_t session_user_id, const basic_parser::Object * r );
-    generic_protocol::BackwardMessage* handle_RateShopperRequest( user_id_t session_user_id, const basic_parser::Object * r );
-
-    generic_protocol::BackwardMessage* handle_web_GetProductItemListRequest( user_id_t session_user_id, const basic_parser::Object * r );
-    generic_protocol::BackwardMessage* handle_web_GetShoppingRequestInfoRequest( user_id_t session_user_id, const basic_parser::Object * r );
-    generic_protocol::BackwardMessage* handle_web_GetShoppingListWithTotalsRequest( user_id_t session_user_id, const basic_parser::Object * r );
-    generic_protocol::BackwardMessage* handle_web_GetDashScreenUserRequest( user_id_t session_user_id, const basic_parser::Object * r );
-    generic_protocol::BackwardMessage* handle_web_GetDashScreenShopperRequest( user_id_t session_user_id, const basic_parser::Object * r );
-
-    generic_protocol::BackwardMessage* handle_user_reg_RegisterUserRequest( user_id_t session_user_id, const basic_parser::Object * r );
 
     bool validate( std::string * error_msg, const shopndrop_protocol::RideSummary & r, const std::string & timezone ) const;
     bool validate( std::string * error_msg, uint32_t * delivery_time, user_id_t * shopper_id, const shopndrop_protocol::AddOrderRequest & r ) const;
@@ -113,7 +106,6 @@ private:
 
     unsigned int                        log_id_;
 
-    generic_handler::Handler            * generic_handler_;
     user_manager::UserManager           * user_man_;
     db::OrderDB                         * order_db_;
     LeadDB                              * lead_db_;
@@ -127,4 +119,4 @@ private:
 
 } // namespace shopndrop
 
-#endif // SHOPNDROP_HANDLER_H
+#endif // SHOPNDROP__HANDLER_H

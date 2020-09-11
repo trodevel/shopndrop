@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 13757 $ $Date:: 2020-09-08 #$ $Author: serge $
+// $Revision: 13792 $ $Date:: 2020-09-11 #$ $Author: serge $
 
 #ifndef SHOPNDROP_SHOPNDROP_H
 #define SHOPNDROP_SHOPNDROP_H
@@ -32,6 +32,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "generic_handler/perm_checker.h"        // generic_handler::PermChecker
 #include "periodic_call_gen/default_periodic.h"  // periodic_call_gen::DefaultPeriodic
 #include "periodic_call_gen/periodic_call_gen.h" // periodic_call_gen::PeriodicCallGen
+#include "handler_thunk.h"                  // HandlerThunk
 #include "handler.h"                        // Handler
 #include "authenticator.h"                  // Authenticator
 #include "db_order_db.h"                    // db::OrderDB
@@ -95,6 +96,7 @@ private:
     shopndrop::Thunk                sh_;
     generic_handler::Handler        gh_;
     generic_handler::PermChecker    generic_perm_checker_;
+    shopndrop::HandlerThunk         ht_;
     shopndrop::Handler              h_;
     shopndrop::ObjGenerator         db_obj_gen_;
     shopndrop::db::OrderDB           db_;

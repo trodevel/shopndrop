@@ -1,6 +1,6 @@
 /*
 
-shopndrop_protocol::Request handler.
+Request handler.
 
 Copyright (C) 2019 Sergey Kolevatov
 
@@ -19,13 +19,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 13757 $ $Date:: 2020-09-08 #$ $Author: serge $
+// $Revision: 13792 $ $Date:: 2020-09-11 #$ $Author: serge $
 
 #include "handler.h"            // self
-
-#include <typeindex>            // std::type_index
-#include <typeinfo>
-#include <unordered_map>
 
 #include "utils/mutex_helper.h"      // MUTEX_SCOPE_LOCK
 #include "utils/dummy_logger.h"      // dummy_log
@@ -51,7 +47,6 @@ namespace shopndrop {
 
 Handler::Handler():
     log_id_( 0 ),
-    generic_handler_( nullptr ),
     user_man_( nullptr ),
     order_db_( nullptr ),
     lead_db_( nullptr ),
@@ -66,7 +61,6 @@ Handler::Handler():
 
 bool Handler::init(
         unsigned int                        log_id,
-        generic_handler::Handler            * generic_handler,
         user_manager::UserManager           * user_man,
         db::OrderDB                         * order_db,
         LeadDB                              * lead_db,
@@ -83,14 +77,10 @@ bool Handler::init(
         return false;
 
     log_id_             = log_id;
-    generic_handler_    = generic_handler;
-    //task_manager_       = task_manager;
     user_man_           = user_man;
     order_db_           = order_db;
     lead_db_            = lead_db;
-    //perm_db_            = perm_db;
     tzc_                = tzc;
-    //req_harmon_         = req_harmon;
     time_adj_           = time_adj;
     obj_gen_            = obj_gen;
     goodies_db_         = goodies_db;
@@ -102,58 +92,6 @@ bool Handler::init(
 bool Handler::is_inited__() const
 {
     return true;
-}
-
-generic_protocol::BackwardMessage* Handler::handle( user_id_t session_user_id, const basic_parser::Object * req )
-{
-    MUTEX_SCOPE_LOCK( mutex_ );
-
-    ASSERT( is_inited__() );
-
-    typedef Handler Type;
-
-    typedef generic_protocol::BackwardMessage* (Type::*PPMF)( user_id_t session_user_id, const basic_parser::Object * r );
-
-#define MAP_ENTRY(_v)       { typeid( shopndrop_protocol::_v ),        & Type::handle_##_v }
-#define MAP_ENTRY_WEB(_v)   { typeid( shopndrop_web_protocol::_v ),   & Type::handle_web_##_v }
-#define MAP_ENTRY_USER_REG(_v)  { typeid( user_reg_protocol::_v ),  & Type::handle_user_reg_##_v }
-#define MAP_ENTRY_USER_MANAGEMENT(_v)   { typeid( user_management_protocol::_v ),  & Type::handle_user_management_##_v }
-
-    static const std::unordered_map<std::type_index, PPMF> funcs =
-    {
-        MAP_ENTRY( AddRideRequest ),
-        MAP_ENTRY( GetRideRequest ),
-        MAP_ENTRY( CancelRideRequest ),
-        MAP_ENTRY_USER_MANAGEMENT( GetUserInfoRequest ),
-        MAP_ENTRY( AddOrderRequest ),
-        MAP_ENTRY( CancelOrderRequest ),
-        MAP_ENTRY( AcceptOrderRequest ),
-        MAP_ENTRY( DeclineOrderRequest ),
-        MAP_ENTRY( MarkDeliveredOrderRequest ),
-        MAP_ENTRY( RateShopperRequest ),
-
-        MAP_ENTRY_WEB( GetProductItemListRequest ),
-        MAP_ENTRY_WEB( GetShoppingRequestInfoRequest ),
-        MAP_ENTRY_WEB( GetShoppingListWithTotalsRequest ),
-        MAP_ENTRY_WEB( GetDashScreenUserRequest ),
-        MAP_ENTRY_WEB( GetDashScreenShopperRequest ),
-
-        MAP_ENTRY_USER_REG( RegisterUserRequest ),
-    };
-
-#undef MAP_ENTRY
-#undef MAP_ENTRY_WEB
-#undef MAP_ENTRY_USER_REG
-#undef MAP_ENTRY_USER_MANAGEMENT
-
-    auto it = funcs.find( typeid( * req ) );
-
-    if( it == funcs.end() )
-    {
-        return generic_handler_->handle( session_user_id, req );
-    }
-
-    return (this->*it->second)( session_user_id, req );
 }
 
 bool Handler::validate( std::string * error_msg, const shopndrop_protocol::RideSummary & r, const std::string & timezone ) const
@@ -173,7 +111,7 @@ bool Handler::validate( std::string * error_msg, const shopndrop_protocol::RideS
     return true;
 }
 
-bool Handler::validate( std::string * error_msg, uint32_t * delivery_time, user_id_t * shopper_id, const shopndrop_protocol::AddOrderRequest & r ) const
+bool Handler::validate( std::string * error_msg, uint32_t * delivery_time, user_id_t * shopper_id, const shopndrop_protocol::AddOrderRequest   & r ) const
 {
     auto & mutex = order_db_->get_mutex();
 
@@ -234,11 +172,9 @@ double Handler::calculate_earning( double sum )
     return res;
 }
 
-generic_protocol::BackwardMessage* Handler::handle_AddRideRequest( user_id_t session_user_id, const basic_parser::Object * rr )
+generic_protocol::BackwardMessage* Handler::handle( user_id_t session_user_id, const shopndrop_protocol::AddRideRequest  & r )
 {
     // private: no mutex lock
-
-    auto & r = dynamic_cast< const shopndrop_protocol::AddRideRequest &>( * rr );
 
     std::string     timezone;
 
@@ -282,10 +218,8 @@ generic_protocol::BackwardMessage* Handler::handle_AddRideRequest( user_id_t ses
     }
 }
 
-generic_protocol::BackwardMessage* Handler::handle_GetRideRequest( user_id_t session_user_id, const basic_parser::Object * rr )
+generic_protocol::BackwardMessage* Handler::handle( user_id_t session_user_id, const shopndrop_protocol::GetRideRequest & r )
 {
-    auto & r = dynamic_cast< const shopndrop_protocol::GetRideRequest &>( * rr );
-
     std::string     timezone;
 
     if( get_user_timezone( & timezone, session_user_id ) == false )
@@ -311,10 +245,8 @@ generic_protocol::BackwardMessage* Handler::handle_GetRideRequest( user_id_t ses
     return shopndrop_protocol::create_GetRideResponse( res );
 }
 
-generic_protocol::BackwardMessage* Handler::handle_CancelRideRequest( user_id_t session_user_id, const basic_parser::Object * rr )
+generic_protocol::BackwardMessage* Handler::handle( user_id_t session_user_id, const shopndrop_protocol::CancelRideRequest & r )
 {
-    auto & r = dynamic_cast< const shopndrop_protocol::CancelRideRequest &>( * rr );
-
     std::string error_msg;
 
     auto b = order_db_->cancel_ride( r.ride_id, session_user_id, & error_msg );
@@ -327,11 +259,9 @@ generic_protocol::BackwardMessage* Handler::handle_CancelRideRequest( user_id_t 
     return shopndrop_protocol::create_CancelRideResponse();
 }
 
-generic_protocol::BackwardMessage* Handler::handle_user_management_GetUserInfoRequest( user_id_t session_user_id, const basic_parser::Object * rr )
+generic_protocol::BackwardMessage* Handler::handle( user_id_t session_user_id, const user_management_protocol::GetUserInfoRequest & r )
 {
     // private: no mutex lock
-
-    auto & r = dynamic_cast< const user_management_protocol::GetUserInfoRequest &>( * rr );
 
     auto user = user_man_->find__unlocked( r.user_id );
 
@@ -356,10 +286,8 @@ generic_protocol::BackwardMessage* Handler::handle_user_management_GetUserInfoRe
     return res;
 }
 
-generic_protocol::BackwardMessage* Handler::handle_AddOrderRequest( user_id_t session_user_id, const basic_parser::Object * rr )
+generic_protocol::BackwardMessage* Handler::handle( user_id_t session_user_id, const shopndrop_protocol::AddOrderRequest & r )
 {
-    auto & r = dynamic_cast< const shopndrop_protocol::AddOrderRequest &>( * rr );
-
     std::string     error_msg;
     uint32_t        delivery_time;
     user_id_t       shopper_id;
@@ -409,17 +337,13 @@ generic_protocol::BackwardMessage* Handler::handle_AddOrderRequest( user_id_t se
     }
 }
 
-generic_protocol::BackwardMessage* Handler::handle_CancelOrderRequest( user_id_t session_user_id, const basic_parser::Object * rr )
+generic_protocol::BackwardMessage* Handler::handle( user_id_t session_user_id, const shopndrop_protocol::CancelOrderRequest & r )
 {
-    //auto & r = dynamic_cast< const shopndrop_protocol::CancelOrderRequest &>( * rr );
-
     return generic_protocol::create_ErrorResponse( generic_protocol::ErrorResponse_type_e::RUNTIME_ERROR, "not implemented yet" );
 }
 
-generic_protocol::BackwardMessage* Handler::handle_AcceptOrderRequest( user_id_t session_user_id, const basic_parser::Object * rr )
+generic_protocol::BackwardMessage* Handler::handle( user_id_t session_user_id, const shopndrop_protocol::AcceptOrderRequest & r )
 {
-    auto & r = dynamic_cast< const shopndrop_protocol::AcceptOrderRequest &>( * rr );
-
     std::string error_msg;
 
     auto b = order_db_->accept_order( r.order_id, session_user_id, true, & error_msg );
@@ -432,10 +356,8 @@ generic_protocol::BackwardMessage* Handler::handle_AcceptOrderRequest( user_id_t
     return shopndrop_protocol::create_AcceptOrderResponse();
 }
 
-generic_protocol::BackwardMessage* Handler::handle_DeclineOrderRequest( user_id_t session_user_id, const basic_parser::Object * rr )
+generic_protocol::BackwardMessage* Handler::handle( user_id_t session_user_id, const shopndrop_protocol::DeclineOrderRequest & r )
 {
-    auto & r = dynamic_cast< const shopndrop_protocol::DeclineOrderRequest &>( * rr );
-
     std::string error_msg;
 
     auto b = order_db_->accept_order( r.order_id, session_user_id, false, & error_msg );
@@ -448,10 +370,8 @@ generic_protocol::BackwardMessage* Handler::handle_DeclineOrderRequest( user_id_
     return shopndrop_protocol::create_DeclineOrderResponse();
 }
 
-generic_protocol::BackwardMessage* Handler::handle_MarkDeliveredOrderRequest( user_id_t session_user_id, const basic_parser::Object * rr )
+generic_protocol::BackwardMessage* Handler::handle( user_id_t session_user_id, const shopndrop_protocol::MarkDeliveredOrderRequest & r )
 {
-    auto & r = dynamic_cast< const shopndrop_protocol::MarkDeliveredOrderRequest &>( * rr );
-
     std::string error_msg;
 
     auto b = order_db_->mark_delivered_order( r.order_id, session_user_id, & error_msg );
@@ -464,10 +384,8 @@ generic_protocol::BackwardMessage* Handler::handle_MarkDeliveredOrderRequest( us
     return shopndrop_protocol::create_MarkDeliveredOrderResponse();
 }
 
-generic_protocol::BackwardMessage* Handler::handle_RateShopperRequest( user_id_t session_user_id, const basic_parser::Object * rr )
+generic_protocol::BackwardMessage* Handler::handle( user_id_t session_user_id, const shopndrop_protocol::RateShopperRequest & r )
 {
-    auto & r = dynamic_cast< const shopndrop_protocol::RateShopperRequest &>( * rr );
-
     std::string error_msg;
 
     auto b = order_db_->rate_shopper( r.order_id, r.stars, session_user_id, & error_msg );
@@ -480,10 +398,8 @@ generic_protocol::BackwardMessage* Handler::handle_RateShopperRequest( user_id_t
     return shopndrop_protocol::create_RateShopperResponse();
 }
 
-generic_protocol::BackwardMessage* Handler::handle_web_GetProductItemListRequest( user_id_t session_user_id, const basic_parser::Object * rr )
+generic_protocol::BackwardMessage* Handler::handle( user_id_t session_user_id, const shopndrop_web_protocol::GetProductItemListRequest & r )
 {
-    //auto & r = dynamic_cast< const shopndrop_web_protocol::GetProductItemListRequest &>( * rr );
-
     auto pids = goodies_db_->get_all_product_items();
 
     auto res = shopndrop_web_protocol::create_GetProductItemListResponse( pids );
@@ -491,10 +407,8 @@ generic_protocol::BackwardMessage* Handler::handle_web_GetProductItemListRequest
     return res;
 }
 
-generic_protocol::BackwardMessage* Handler::handle_web_GetShoppingRequestInfoRequest( user_id_t session_user_id, const basic_parser::Object * rr )
+generic_protocol::BackwardMessage* Handler::handle( user_id_t session_user_id, const shopndrop_web_protocol::GetShoppingRequestInfoRequest & r )
 {
-    auto & r = dynamic_cast< const shopndrop_web_protocol::GetShoppingRequestInfoRequest &>( * rr );
-
     std::vector<shopndrop_web_protocol::ShoppingRequestInfo> requests;
 
     std::string error_msg;
@@ -509,10 +423,8 @@ generic_protocol::BackwardMessage* Handler::handle_web_GetShoppingRequestInfoReq
     return shopndrop_web_protocol::create_GetShoppingRequestInfoResponse( requests );
 }
 
-generic_protocol::BackwardMessage* Handler::handle_web_GetShoppingListWithTotalsRequest( user_id_t session_user_id, const basic_parser::Object * rr )
+generic_protocol::BackwardMessage* Handler::handle( user_id_t session_user_id, const shopndrop_web_protocol::GetShoppingListWithTotalsRequest & r )
 {
-    auto & r = dynamic_cast< const shopndrop_web_protocol::GetShoppingListWithTotalsRequest &>( * rr );
-
     auto & mutex = order_db_->get_mutex();
 
     MUTEX_SCOPE_LOCK( mutex );
@@ -531,10 +443,8 @@ generic_protocol::BackwardMessage* Handler::handle_web_GetShoppingListWithTotals
     return shopndrop_web_protocol::create_GetShoppingListWithTotalsResponse( slwt );
 }
 
-generic_protocol::BackwardMessage* Handler::handle_web_GetDashScreenUserRequest( user_id_t session_user_id, const basic_parser::Object * rr )
+generic_protocol::BackwardMessage* Handler::handle( user_id_t session_user_id, const shopndrop_web_protocol::GetDashScreenUserRequest & r )
 {
-    auto & r = dynamic_cast< const shopndrop_web_protocol::GetDashScreenUserRequest &>( * rr );
-
     std::string     timezone;
 
     if( get_user_timezone( & timezone, session_user_id ) == false )
@@ -559,10 +469,8 @@ generic_protocol::BackwardMessage* Handler::handle_web_GetDashScreenUserRequest(
     return shopndrop_web_protocol::create_GetDashScreenUserResponse( dash_screen );
 }
 
-generic_protocol::BackwardMessage* Handler::handle_web_GetDashScreenShopperRequest( user_id_t session_user_id, const basic_parser::Object * rr )
+generic_protocol::BackwardMessage* Handler::handle( user_id_t session_user_id, const shopndrop_web_protocol::GetDashScreenShopperRequest & r )
 {
-    //auto & r = dynamic_cast< const shopndrop_web_protocol::GetDashScreenShopperRequest &>( * rr );
-
     std::string     timezone;
 
     if( get_user_timezone( & timezone, session_user_id ) == false )
@@ -587,10 +495,8 @@ generic_protocol::BackwardMessage* Handler::handle_web_GetDashScreenShopperReque
     return shopndrop_web_protocol::create_GetDashScreenShopperResponse( dash_screen );
 }
 
-generic_protocol::BackwardMessage* Handler::handle_user_reg_RegisterUserRequest( user_id_t session_user_id, const basic_parser::Object * rr )
+generic_protocol::BackwardMessage* Handler::handle( user_id_t session_user_id, const user_reg_protocol::RegisterUserRequest & r )
 {
-    auto & r = dynamic_cast< const user_reg_protocol::RegisterUserRequest &>( * rr );
-
     dummy_log_info( log_id_, "registering new lead, user id %u, %s", session_user_id, user_reg_protocol::str_helper::to_string( r.lead ).c_str() );
 
     return lead_db_->handle( session_user_id, r );
