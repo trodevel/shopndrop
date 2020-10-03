@@ -19,13 +19,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 13792 $ $Date:: 2020-09-11 #$ $Author: serge $
+// $Revision: 13938 $ $Date:: 2020-10-03 #$ $Author: serge $
 
 #include "core.h"                       // self
 
 #include "utils/mutex_helper.h"      // MUTEX_SCOPE_LOCK
 #include "utils/utils_assert.h"      // ASSERT
 #include "utils/dummy_logger.h"      // dummy_log
+
+#define MODULENAME      "Core"
 
 namespace shopndrop {
 
@@ -40,10 +42,11 @@ Core::~Core()
     }
 }
 
-bool Core::init(
+void Core::init(
         const Config                            & config,
-        const session_manager::Manager::Config  & sesman_config,
-        const shopndrop::LeadDB::Config         & lead_db_config,
+        const session_manager::Config           & sesman_config,
+        const user_reg::Config                  & user_reg_config,
+        const user_reg_email::Config            & user_reg_email_config,
         uint32_t                                log_id_db,
         uint32_t                                log_id_handler,
         uint32_t                                log_id_ride,
@@ -52,81 +55,67 @@ bool Core::init(
 {
     MUTEX_SCOPE_LOCK( mutex_ );
 
-    if( !sched )
-        return false;
+    assert( sched );
 
     config_ = config;
 
-    bool b = sh_.init( & perm_checker_, & ht_, config.request_log, config.request_log_rotation_interval_min );
-    ASSERT( b );
+    user_reg_handler_thunk_.init( log_id_handler, & gh_, & user_reg_handler_ );
 
-    b = gh_.init( & sess_man_, & user_man_ );
-    ASSERT( b );
+    sh_.init( & perm_checker_, & ht_, & user_reg_handler_thunk_, config.request_log, config.request_log_rotation_interval_min );
 
-    b = user_man_.init();
-    ASSERT( b );
+    gh_.init( & sess_man_, & user_man_ );
 
-    std::string error_msg;
+    user_man_.init( config.users_db_file );
 
-    b = user_man_.load( config.credentials_file, & error_msg );
-    ASSERT( b );
+    authen_.init( & user_man_ );
 
-    b = authen_.init( & user_man_ );
-    ASSERT( b );
+    generic_perm_checker_.init( & sess_man_ );
 
-    b = generic_perm_checker_.init( & sess_man_ );
-    ASSERT( b );
+    perm_checker_.init( & generic_perm_checker_, & sess_man_, & db_ );
 
-    b = perm_checker_.init( & generic_perm_checker_, & sess_man_, & db_ );
-    ASSERT( b );
+    tzc_.init( config_.timezone_file );
 
-    try
-    {
-        b = tzc_.init( config_.timezone_file );
-    }
-    catch( std::exception & e )
-    {
-        dummy_log_fatal( "Core", "cannot initialize TZC: %s", e.what() );
-        return false;
-    }
+    time_adj_.init( & tzc_ );
 
-    b = time_adj_.init( & tzc_ );
-    ASSERT( b );
-
-    b = sess_man_.init( & authen_, sesman_config );
-    ASSERT( b );
+    sess_man_.init( & authen_, sesman_config );
 
     goodies_db_.init( config_.goodies_db_file );
 
-    b = ht_.init( log_id_handler,
+    ht_.init( log_id_handler,
             & gh_, & h_ );
-    ASSERT( b );
 
-    b = h_.init( log_id_handler,
-            & user_man_, & db_, & lead_db_, & tzc_,
+    user_reg_.init( user_reg_config, & user_man_ );
+
+    user_reg_email_.init( user_reg_email_config, & user_reg_ );
+
+    user_reg_handler_.init( & user_reg_email_ );
+
+    h_.init( log_id_handler,
+            & user_man_, & db_, & tzc_,
             & time_adj_, & db_obj_gen_, & goodies_db_ );
-    ASSERT( b );
 
-    b = db_obj_gen_.init( & time_adj_ );
-    ASSERT( b );
+    db_obj_gen_.init( & time_adj_ );
 
     db::OrderDB::Config job_db_config;
 
     job_db_config.status_file  = config.db_status_file;
 
-    b = db_.init( job_db_config, log_id_db, log_id_ride, log_id_order, & user_man_ /*, & db_obj_gen_ */);
-    if( b == false )
-        return false;
-
-    b = lead_db_.init( lead_db_config );
-    if( b == false )
-        return false;
+    db_.init( job_db_config, log_id_db, log_id_ride, log_id_order, & user_man_ /*, & db_obj_gen_ */);
 
     periodic_call_gen_.init( sched );
 
     periodic_call_gen_.register_callee( this );
+}
 
-    return true;
+void Core::shutdown()
+{
+    dummy_log_info( MODULENAME, "shutdown" );
+
+    MUTEX_SCOPE_LOCK( mutex_ );
+
+    std::string error_msg;
+
+    user_man_.save( & error_msg, config_.users_db_file );
 }
 
 restful_interface::IHandler* Core::get_http_handler()
@@ -144,10 +133,13 @@ void Core::once_per_minute()
 
 void Core::once_per_hour()
 {
-//    db_.save_status();
+    dummy_log_trace( MODULENAME, "once_per_hour" );
 
-    {
-    }
+    MUTEX_SCOPE_LOCK( mutex_ );
+
+    std::string error_msg;
+
+    user_man_.save( & error_msg, config_.users_db_file );
 }
 
 } // namespace shopndrop

@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 13792 $ $Date:: 2020-09-11 #$ $Author: serge $
+// $Revision: 13938 $ $Date:: 2020-10-03 #$ $Author: serge $
 
 #ifndef SHOPNDROP__HANDLER_H
 #define SHOPNDROP__HANDLER_H
@@ -49,8 +49,6 @@ class BackwardMessage;
 
 namespace shopndrop {
 
-class LeadDB;
-
 class Handler
 {
 public:
@@ -61,7 +59,6 @@ public:
             unsigned int                        log_id,
             user_manager::UserManager           * user_man,
             db::OrderDB                         * order_db,
-            LeadDB                              * lead_db,
             utils::TimeZoneConverter            * tzc,
             TimeAdjuster                        * time_adj,
             ObjGenerator                        * obj_gen,
@@ -83,8 +80,6 @@ public:
     generic_protocol::BackwardMessage* handle( user_id_t session_user_id, const shopndrop_web_protocol::GetShoppingListWithTotalsRequest & r );
     generic_protocol::BackwardMessage* handle( user_id_t session_user_id, const shopndrop_web_protocol::GetDashScreenUserRequest & r );
     generic_protocol::BackwardMessage* handle( user_id_t session_user_id, const shopndrop_web_protocol::GetDashScreenShopperRequest & r );
-
-    generic_protocol::BackwardMessage* handle( user_id_t session_user_id, const user_reg_protocol::RegisterUserRequest & r );
 
 private:
 
@@ -108,7 +103,6 @@ private:
 
     user_manager::UserManager           * user_man_;
     db::OrderDB                         * order_db_;
-    LeadDB                              * lead_db_;
     utils::TimeZoneConverter            * tzc_;
     TimeAdjuster                        * time_adj_;
     ObjGenerator                        * obj_gen_;

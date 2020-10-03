@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 13757 $ $Date:: 2020-09-08 #$ $Author: serge $
+// $Revision: 13938 $ $Date:: 2020-10-03 #$ $Author: serge $
 
 #include "config_extractor.h"       // self
 
@@ -36,26 +36,16 @@ void init_logs( std::string * filename, uint32_t * rotation_interval_min, const 
     cr.get_value_converted( rotation_interval_min, section, "rotation_interval_min", true );
 }
 
-void init_config( http_server_wrap::Config * cfg, const config_reader::ConfigReader & cr )
-{
-    const std::string section( "http_server" );
-
-    GET_VALUE( server_cert,         section, true );
-    GET_VALUE( server_key,          section, true );
-    cr.get_value_converted( & cfg->port,        section, "port", true );
-    cr.get_value_converted( & cfg->max_threads, section, "max_threads", true );
-    cr.get_value_converted( & cfg->max_clients, section, "max_clients", true );
-}
-
 void init_config( Core::Config * cfg, const config_reader::ConfigReader & cr )
 {
     const std::string section( "core" );
 
-    cr.get_value( & cfg->db_status_file  , section, "db_status_file", true );
-    cr.get_value( & cfg->request_log     , section, "request_log", true );
-    cr.get_value_converted( & cfg->request_log_rotation_interval_min, section, "request_log_rotation_interval_min", true );
-    cr.get_value( & cfg->credentials_file, section, "credentials_file", true );
-    cr.get_value( & cfg->timezone_file   , section, "timezone_file", true );
+    GET_VALUE( db_status_file  , section, true );
+    GET_VALUE( request_log     , section, true );
+    GET_VALUE_CONVERTED( request_log_rotation_interval_min, section, true );
+    GET_VALUE( users_db_file, section, true );
+    GET_VALUE( user_reg_email_credentials_file,         section, true );
+    GET_VALUE( timezone_file   , section, true );
 
     GET_VALUE( goodies_db_file,             section, true );
 }
@@ -65,22 +55,6 @@ void init_scheduler( uint32_t * granularity_ms, const config_reader::ConfigReade
     const std::string section( "scheduler" );
 
     cr.get_value_converted( granularity_ms  , section, "granularity_ms", true );
-}
-
-void init_config( session_manager::Manager::Config * cfg, const config_reader::ConfigReader & cr )
-{
-    const std::string section( "session_manager" );
-
-    cr.get_value_converted( & cfg->expiration_time,         section, "expiration_time_min",     true );
-    cr.get_value_converted( & cfg->max_sessions_per_user,   section, "max_sessions_per_user",   true );
-    cr.get_value_converted( & cfg->postpone_expiration,     section, "postpone_expiration",     true );
-}
-
-void init_config( LeadDB::Config * cfg, const config_reader::ConfigReader & cr )
-{
-    const std::string section( "lead_db" );
-
-    GET_VALUE( lead_reg_file,           section, true );
 }
 
 } // namespace shopndrop

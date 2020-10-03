@@ -19,11 +19,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 13792 $ $Date:: 2020-09-11 #$ $Author: serge $
+// $Revision: 13938 $ $Date:: 2020-10-03 #$ $Author: serge $
 
 #ifndef SHOPNDROP_SHOPNDROP_H
 #define SHOPNDROP_SHOPNDROP_H
 
+#include "session_manager/session_manager.h"// session_manager::SessionManager
 #include <mutex>                            // std::mutex
 
 #include "thunk.h"                          // Thunk
@@ -39,9 +40,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "db_obj_generator.h"               // ObjGenerator
 #include "perm_checker.h"                   // PermChecker
 #include "time_adjuster.h"                  // TimeAdjuster
-#include "lead_db.h"                        // LeadDB
-#include "session_manager/manager.h"     // session_manager::Manager
 #include "user_manager/user_manager.h"           // user_manager::UserManager
+#include "user_reg_email/user_reg_email.h"  // UserRegEmail
+#include "user_reg_handler/handler.h"       // user_reg_handler::Handler
+#include "user_reg_handler/handler_thunk.h" // user_reg_handler::HandlerThunk
 #include "goodies_db.h"                     // GoodiesDB
 
 namespace scheduler
@@ -59,7 +61,8 @@ public:
         std::string db_status_file;
         std::string request_log;
         uint32_t    request_log_rotation_interval_min;
-        std::string credentials_file;
+        std::string users_db_file;
+        std::string user_reg_email_credentials_file;
         std::string timezone_file;
         std::string goodies_db_file;
     };
@@ -69,15 +72,18 @@ public:
     Core();
     ~Core();
 
-    bool init(
+    void init(
             const Config                            & config,
-            const session_manager::Manager::Config  & sesman_config,
-            const shopndrop::LeadDB::Config         & lead_db_config,
+            const session_manager::Config           & sesman_config,
+            const user_reg::Config                  & user_reg_config,
+            const user_reg_email::Config            & user_reg_email_config,
             uint32_t                                log_id_db,
             uint32_t                                log_id_handler,
             uint32_t                                log_id_ride,
             uint32_t                                log_id_order,
             scheduler::IScheduler                   * sched );
+
+    void shutdown();
 
     restful_interface::IHandler* get_http_handler();
 
@@ -103,14 +109,16 @@ private:
     shopndrop::Authenticator        authen_;
     shopndrop::PermChecker          perm_checker_;
     user_manager::UserManager   user_man_;
-    session_manager::Manager    sess_man_;
+    session_manager::SessionManager    sess_man_;
+    user_reg::UserReg               user_reg_;
+    user_reg_email::UserRegEmail    user_reg_email_;
+    user_reg_handler::Handler       user_reg_handler_;
+    user_reg_handler::HandlerThunk  user_reg_handler_thunk_;
     periodic_call_gen::PeriodicCallGen      periodic_call_gen_;
     GoodiesDB                       goodies_db_;
 
     utils::TimeZoneConverter    tzc_;
     TimeAdjuster                time_adj_;
-
-    shopndrop::LeadDB                lead_db_;
 };
 
 } // namespace shopndrop

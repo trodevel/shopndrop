@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 13757 $ $Date:: 2020-09-08 #$ $Author: serge $
+// $Revision: 13938 $ $Date:: 2020-10-03 #$ $Author: serge $
 
 #include <iostream>
 #include <thread>                           // std::thread
@@ -31,6 +31,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "daemons/daemon.h"                 // Daemon
 #include "http_server_wrap/server.h"        // Server
+#include "http_server_wrap/init_config.h"   // http_server_wrap::init_config
+#include "session_manager/init_config.h"    // session_manager::init_config
+#include "user_reg/init_config.h"           // user_reg::init_config
+#include "user_reg_email/init_config.h"     // user_reg_email::init_config
 #include "scheduler/scheduler.h"            // Scheduler
 #include "scheduler/periodic_job_aux.h"     // scheduler::create_and_insert_periodic_job
 #include "threcon/controller.h"             // Controller
@@ -76,31 +80,29 @@ int main( int argc, char **argv )
 
         config_reader::ConfigReader cr;
 
-        if( cr.init( config_file ) == false )
-        {
-            std::cerr << "ERROR: cannot read config file " + config_file << std::endl;
-
-            return 0;
-        }
-        else
-        {
-            std::cout << "loaded config file " + config_file << std::endl;
-        }
+        cr.init( config_file );
 
         std::string                         filename;
         uint32_t                            rotation_interval;
         http_server_wrap::Config            server_config;
-        shopndrop::Core::Config                  core_config;
-        shopndrop::LeadDB::Config                lead_db_config;
+        shopndrop::Core::Config             core_config;
+        user_reg::Config                    user_reg_config;
+        user_reg_email::Config              user_reg_email_config;
         uint32_t                            granularity_ms;
-        session_manager::Manager::Config    sesman_cfg;
+        session_manager::Config             sesman_cfg;
 
         shopndrop::init_logs( & filename, & rotation_interval, cr );
-        shopndrop::init_config( & server_config, cr );
+        http_server_wrap::init_config( & server_config, "http_server", cr );
         shopndrop::init_config( & core_config, cr );
         shopndrop::init_scheduler( & granularity_ms, cr );
-        shopndrop::init_config( & sesman_cfg, cr );
-        shopndrop::init_config( & lead_db_config, cr );
+        session_manager::init_config( & sesman_cfg, "session_manager", cr );
+        user_reg::init_config( & user_reg_config, "user_reg", cr );
+        user_reg_email::init_config( & user_reg_email_config, "user_reg_email", cr );
+
+        config_reader::ConfigReader cr2;
+        cr2.init( core_config.user_reg_email_credentials_file );
+
+        user_reg_email::init_credentials( & user_reg_email_config, "user_reg_email_credentials", cr2 );
 
         utils::LogfileTimeWriter w( filename, rotation_interval );
 
@@ -166,20 +168,16 @@ int main( int argc, char **argv )
         }
 
         http_server.init( server_config, log_id_http_server, core.get_http_handler() );
-        auto b = core.init(
+
+        core.init(
                 core_config, sesman_cfg,
-                lead_db_config,
+                user_reg_config,
+                user_reg_email_config,
                 log_id_db,
                 log_id_core_handler,
                 log_id_ride,
                 log_id_order,
                 &sched );
-
-        if( b == false )
-        {
-            dummy_log_fatal( log_id_main, "cannot init core" );
-            return 1;
-        }
 
         init_check_signals( sched, & controller );
 
@@ -196,6 +194,8 @@ int main( int argc, char **argv )
             t.join();
 
         sched.shutdown();
+
+        core.shutdown();
 
         dummy_log_info( log_id_main, "exit" );
     }

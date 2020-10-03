@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 13792 $ $Date:: 2020-09-11 #$ $Author: serge $
+// $Revision: 13938 $ $Date:: 2020-10-03 #$ $Author: serge $
 
 #ifndef SHOPNDROP__HANDLER_THUNK_H
 #define SHOPNDROP__HANDLER_THUNK_H
@@ -71,8 +71,6 @@ private:
     generic_protocol::BackwardMessage* handle_web_GetShoppingListWithTotalsRequest( user_id_t session_user_id, const basic_parser::Object * r );
     generic_protocol::BackwardMessage* handle_web_GetDashScreenUserRequest( user_id_t session_user_id, const basic_parser::Object * r );
     generic_protocol::BackwardMessage* handle_web_GetDashScreenShopperRequest( user_id_t session_user_id, const basic_parser::Object * r );
-
-    generic_protocol::BackwardMessage* handle_user_reg_RegisterUserRequest( user_id_t session_user_id, const basic_parser::Object * r );
 
     bool is_inited__() const;
 

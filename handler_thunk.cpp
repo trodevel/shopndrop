@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 13792 $ $Date:: 2020-09-11 #$ $Author: serge $
+// $Revision: 13938 $ $Date:: 2020-10-03 #$ $Author: serge $
 
 #include "handler_thunk.h"      // self
 
@@ -34,7 +34,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "shopndrop_protocol/protocol.h"            // shopndrop_protocol::...
 #include "shopndrop_web_protocol/protocol.h"        // shopndrop_web_protocol::...
 
-#include "user_reg_protocol/protocol.h"    // user_reg_protocol::
 #include "user_management_protocol/protocol.h"  // user_management_protocol::
 
 #include "generic_handler/handler.h"                // generic_handler::Handler
@@ -88,7 +87,6 @@ generic_protocol::BackwardMessage* HandlerThunk::handle( user_id_t session_user_
 
 #define MAP_ENTRY(_v)       { typeid( shopndrop_protocol::_v ),        & Type::handle_##_v }
 #define MAP_ENTRY_WEB(_v)   { typeid( shopndrop_web_protocol::_v ),   & Type::handle_web_##_v }
-#define MAP_ENTRY_USER_REG(_v)  { typeid( user_reg_protocol::_v ),  & Type::handle_user_reg_##_v }
 #define MAP_ENTRY_USER_MANAGEMENT(_v)   { typeid( user_management_protocol::_v ),  & Type::handle_user_management_##_v }
 
     static const std::unordered_map<std::type_index, PPMF> funcs =
@@ -109,13 +107,10 @@ generic_protocol::BackwardMessage* HandlerThunk::handle( user_id_t session_user_
         MAP_ENTRY_WEB( GetShoppingListWithTotalsRequest ),
         MAP_ENTRY_WEB( GetDashScreenUserRequest ),
         MAP_ENTRY_WEB( GetDashScreenShopperRequest ),
-
-        MAP_ENTRY_USER_REG( RegisterUserRequest ),
     };
 
 #undef MAP_ENTRY
 #undef MAP_ENTRY_WEB
-#undef MAP_ENTRY_USER_REG
 #undef MAP_ENTRY_USER_MANAGEMENT
 
     auto it = funcs.find( typeid( * req ) );
@@ -203,11 +198,6 @@ generic_protocol::BackwardMessage* HandlerThunk::handle_web_GetDashScreenUserReq
 generic_protocol::BackwardMessage* HandlerThunk::handle_web_GetDashScreenShopperRequest( user_id_t session_user_id, const basic_parser::Object * rr )
 {
     return handler_->handle( session_user_id, dynamic_cast< const shopndrop_web_protocol::GetDashScreenShopperRequest &>( * rr ) );
-}
-
-generic_protocol::BackwardMessage* HandlerThunk::handle_user_reg_RegisterUserRequest( user_id_t session_user_id, const basic_parser::Object * rr )
-{
-    return handler_->handle( session_user_id, dynamic_cast< const user_reg_protocol::RegisterUserRequest &>( * rr ) );
 }
 
 

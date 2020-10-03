@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 13792 $ $Date:: 2020-09-11 #$ $Author: serge $
+// $Revision: 13938 $ $Date:: 2020-10-03 #$ $Author: serge $
 
 
 #ifndef THUNK_H
@@ -31,6 +31,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "utils/logfile_time.h"                  // utils::LogfileTime
 #include "restful_interface/i_handler.h"         // restful_interface::IHandler
 #include "generic_protocol/protocol.h"   // generic_protocol::ForwardMessage
+#include "user_reg_handler/handler_thunk.h"     // user_reg_handler::HandlerThunk
 
 namespace shopndrop {
 
@@ -45,6 +46,7 @@ public:
     bool init(
             PermChecker         * perm_checker,
             HandlerThunk             * hander,
+            user_reg_handler::HandlerThunk      * user_reg_handler_thunk,
             const std::string   & request_log,
             uint32_t            request_log_rotation_interval_min );
 
@@ -64,6 +66,7 @@ private:
 
     PermChecker                 * perm_checker_;
     HandlerThunk                * handler_thunk_;
+    user_reg_handler::HandlerThunk      * user_reg_handler_thunk_;
 
     std::unique_ptr<utils::LogfileTime>    logfile_;
 };

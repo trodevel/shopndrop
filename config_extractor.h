@@ -19,20 +19,18 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 11057 $ $Date:: 2019-05-06 #$ $Author: serge $
+// $Revision: 13938 $ $Date:: 2020-10-03 #$ $Author: serge $
 
+#include "session_manager/session_manager.h"    // session_manager::SessionManager
 #include "config_reader/config_reader.h"     // config_reader::ConfigReader
 #include "http_server_wrap/config.h"         // http_server_wrap::Server
-#include "session_manager/manager.h"         // session_manager::Manager
+#include "user_reg_email/config.h"          // user_reg_email::Config
 #include "core.h"                               // shopndrop::Core::Config
 
 namespace shopndrop {
 
 void init_logs( std::string * filename, uint32_t * rotation_interval, const config_reader::ConfigReader & cr );
-void init_config( http_server_wrap::Config * cfg, const config_reader::ConfigReader & cr );
 void init_config( Core::Config * cfg, const config_reader::ConfigReader & cr );
 void init_scheduler( uint32_t * granularity_ms, const config_reader::ConfigReader & cr );
-void init_config( session_manager::Manager::Config * cfg, const config_reader::ConfigReader & cr );
-void init_config( LeadDB::Config * cfg, const config_reader::ConfigReader & cr );
 
 } // namespace shopndrop

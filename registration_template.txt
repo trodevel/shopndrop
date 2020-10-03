@@ -1,0 +1,14 @@
+Dear User,
+
+thank you for registering at Shop'n'Drop.
+
+Please confirm you registration by clicking the on the link below:
+
+www.shopndrop.de/confirm?key=$REGISTRATION_KEY
+
+If the link doesn't work, then go to www.shopndrop.de/confirm and paste the following confirmation code there:
+
+$REGISTRATION_KEY
+
+Sincerely yours,
+The team of the ShopnDrop.de

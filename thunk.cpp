@@ -19,11 +19,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 13792 $ $Date:: 2020-09-11 #$ $Author: serge $
+// $Revision: 13938 $ $Date:: 2020-10-03 #$ $Author: serge $
 
 #include "thunk.h"    // self
 
 #include <boost/algorithm/string/predicate.hpp>     // boost::algorithm::starts_with
+#include <cassert>
 
 #include "utils/mutex_helper.h"          // MUTEX_SCOPE_LOCK
 #include "utils/dummy_logger.h"          // dummy_log
@@ -53,23 +54,27 @@ namespace shopndrop {
 
 Thunk::Thunk():
     perm_checker_( nullptr ),
-    handler_thunk_( nullptr )
+    handler_thunk_( nullptr ),
+    user_reg_handler_thunk_( nullptr )
 {
 }
 
 bool Thunk::init(
         PermChecker         * perm_checker,
         HandlerThunk        * hander,
+        user_reg_handler::HandlerThunk      * user_reg_handler_thunk,
         const std::string   & request_log,
         uint32_t            request_log_rotation_interval_min )
 {
-    MUTEX_SCOPE_LOCK( mutex_ );
+    assert( perm_checker );
+    assert( hander );
+    assert( user_reg_handler_thunk );
 
-    if( !perm_checker || !hander )
-        return false;
+    MUTEX_SCOPE_LOCK( mutex_ );
 
     perm_checker_   = perm_checker;
     handler_thunk_  = hander;
+    user_reg_handler_thunk_ = user_reg_handler_thunk;
 
     logfile_.reset( new utils::LogfileTime( request_log, request_log_rotation_interval_min ) );
 
@@ -132,7 +137,7 @@ std::string Thunk::handle__( restful_interface::method_type_e type, const std::s
 
     if( req != nullptr )
     {
-        std::unique_ptr<const generic_protocol::BackwardMessage> resp( handle( req.get() ) );
+        std::unique_ptr<const generic_protocol::BackwardMessage> resp( user_reg_handler_thunk_->handle( 0, req.get() ) );
 
         auto res = user_reg_protocol::csv_helper::to_csv( *resp );
 

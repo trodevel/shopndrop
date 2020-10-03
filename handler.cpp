@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 13792 $ $Date:: 2020-09-11 #$ $Author: serge $
+// $Revision: 13938 $ $Date:: 2020-10-03 #$ $Author: serge $
 
 #include "handler.h"            // self
 
@@ -39,7 +39,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "db_obj_generator.h"           // ObjGenerator
 #include "epoch_now.h"                  // epoch_now_utc(), epoch_to_simple_string()
-#include "lead_db.h"                    // LeadDB
 
 #define MODULENAME      "shopndrop::Handler"
 
@@ -49,7 +48,6 @@ Handler::Handler():
     log_id_( 0 ),
     user_man_( nullptr ),
     order_db_( nullptr ),
-    lead_db_( nullptr ),
     tzc_( nullptr ),
     time_adj_( nullptr ),
     obj_gen_( nullptr ),
@@ -63,7 +61,6 @@ bool Handler::init(
         unsigned int                        log_id,
         user_manager::UserManager           * user_man,
         db::OrderDB                         * order_db,
-        LeadDB                              * lead_db,
         utils::TimeZoneConverter            * tzc,
         TimeAdjuster                        * time_adj,
         ObjGenerator                        * obj_gen,
@@ -79,7 +76,6 @@ bool Handler::init(
     log_id_             = log_id;
     user_man_           = user_man;
     order_db_           = order_db;
-    lead_db_            = lead_db;
     tzc_                = tzc;
     time_adj_           = time_adj;
     obj_gen_            = obj_gen;
@@ -493,13 +489,6 @@ generic_protocol::BackwardMessage* Handler::handle( user_id_t session_user_id, c
     obj_gen_->to_DashScreenShopper( & dash_screen, rides, orders, epoch_now_utc(), timezone );
 
     return shopndrop_web_protocol::create_GetDashScreenShopperResponse( dash_screen );
-}
-
-generic_protocol::BackwardMessage* Handler::handle( user_id_t session_user_id, const user_reg_protocol::RegisterUserRequest & r )
-{
-    dummy_log_info( log_id_, "registering new lead, user id %u, %s", session_user_id, user_reg_protocol::str_helper::to_string( r.lead ).c_str() );
-
-    return lead_db_->handle( session_user_id, r );
 }
 
 

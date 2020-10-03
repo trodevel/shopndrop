@@ -19,13 +19,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 13757 $ $Date:: 2020-09-08 #$ $Author: serge $
+// $Revision: 13938 $ $Date:: 2020-10-03 #$ $Author: serge $
 
 #ifndef SHOPNDROP_PERM_CHECKER_H
 #define SHOPNDROP_PERM_CHECKER_H
 
+#include "session_manager/session_manager.h"        // session_manager::SessionManager
 #include "generic_handler/perm_checker.h"        // generic_handler::PermChecker
-#include "session_manager/manager.h"             // session_manager::Manager
 #include "db_order_db.h"                         // db::OrderDB
 
 namespace shopndrop {
@@ -38,7 +38,7 @@ public:
 
     bool init(
             generic_handler::PermChecker        * generic_perm_checker,
-            session_manager::Manager            * sess_man,
+            session_manager::SessionManager            * sess_man,
             db::OrderDB                         * order_db );
 
     // quasi-interface IHandler
@@ -76,7 +76,7 @@ private:
 
 private:
     generic_handler::PermChecker        * generic_perm_checker_;
-    session_manager::Manager            * sess_man_;
+    session_manager::SessionManager            * sess_man_;
     db::OrderDB                         * order_db_;
 };
 

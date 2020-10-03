@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# $Revision: 13757 $ $Date:: 2020-09-08 #$ $Author: serge $
+# $Revision: 13938 $ $Date:: 2020-10-03 #$ $Author: serge $
 
 RUNTIME_DIR="runtime"
 
@@ -8,7 +8,7 @@ RUNTIME_DIR="runtime"
 
 # create directories
 
-DIRS="logs status cred"
+DIRS="logs status cred resources"
 
 for s in $DIRS
 do
@@ -17,7 +17,8 @@ done
 
 # link files
 
-[[ ! -d ../$RUNTIME_DIR/resources ]] && ln -sf ../../persek_res ../$RUNTIME_DIR/resources
+[[ ! -f ../$RUNTIME_DIR/resources/date_time_zonespec.csv ]] && ln -sf ../../../persek_res/date_time_zonespec.csv ../$RUNTIME_DIR/resources
+[[ ! -f ../$RUNTIME_DIR/resources/registration_template.txt ]] && ln -sf ../../registration_template.txt ../$RUNTIME_DIR/resources
 
 FILES="shopndrop.ini example"
 
@@ -28,7 +29,16 @@ done
 
 # copy files
 
-FILES="users.dat server.crt server.key"
+FILES="users.dat"
+
+for s in $FILES
+do
+    [[ ! -f ../$RUNTIME_DIR/status/$s ]] && cp $s ../$RUNTIME_DIR/status
+done
+
+# credentials
+
+FILES="server.crt server.key user_reg_email_credentials.ini"
 
 for s in $FILES
 do

@@ -19,7 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// $Revision: 13757 $ $Date:: 2020-09-08 #$ $Author: serge $
+// $Revision: 13938 $ $Date:: 2020-10-03 #$ $Author: serge $
 
 #include "perm_checker.h"               // self
 
@@ -47,7 +47,7 @@ PermChecker::PermChecker():
 
 bool PermChecker::init(
         generic_handler::PermChecker        * generic_perm_checker,
-        session_manager::Manager            * sess_man,
+        session_manager::SessionManager            * sess_man,
         db::OrderDB                         * order_db )
 {
     if( !generic_perm_checker || !sess_man )
