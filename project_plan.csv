@@ -1,9 +1,8 @@
-16;;;;;'= next task id;;;
+=MAX(A4:A1000)+1;;;;;'= next task id;;;
 ;;;;;sort order: STATUS (desc), PRIO, TYPE, AREA;;;
 ;;;;;;;;
 ID;TYPE;STATUS;AREA;PRIO;DESCR;CREATION_DATE;COMPLETION_DATE;VERSION
 14;NEW;not started;fe;1;add registration;2020-09-09;;
-7;IMPR;not started;core;2;increase inactivity timeout to 30 min;2019-05-21;;
 15;IMPR;not started;core;2;put data into database;2020-09-09;;
 4;NEW;not started;sys;2;setup users and watchdog;2019-05-14;;
 9;IMPR;done;api;1;reimplement shopndrop_web protocol using APPG;2020-08-20;2020-08-31;1.2
@@ -16,4 +15,5 @@ ID;TYPE;STATUS;AREA;PRIO;DESCR;CREATION_DATE;COMPLETION_DATE;VERSION
 13;NEW;done;core;1;add registration;2020-09-09;2020-10-03;1.2
 1;NEW;done;core;1;create protocol draft;2019-03-31;2019-05-03;1
 2;NEW ;done;core;1;create server derived from core;2019-03-31;2019-05-15;1
+7;IMPR;done;core;2;increase inactivity timeout to 30 min;2019-05-21;2020-10-05;?
 3;NEW;done;fe;2;create frontend;2019-03-31;2019-05-20;1
